@@ -45,20 +45,6 @@
     <h1>One-Minute Learn</h1>
     <div id="lesson-box">
         <p id="lesson-text">Click the button to learn something new in 60 seconds!</p>
-        <select id="category-select">
-            <option value="">Random</option>
-            <option value="Science">Science</option>
-            <option value="History">History</option>
-            <option value="Technology">Technology</option>
-            <option value="Art">Art</option>
-            <option value="Geography">Geography</option>
-            <option value="Mathematics">Mathematics</option>
-            <option value="Music">Music</option>
-            <option value="Nature">Nature</option>
-            <option value="Philosophy">Philosophy</option>
-            <option value="Psychology">Psychology</option>
-        </select>
-        <br>
         <button id="generate-button">Learn Something!</button>
     </div>
 
@@ -66,54 +52,36 @@
         // Store displayed facts to ensure non-repetition
         let displayedFacts = new Set();
 
-        // Define a mapping of categories to Wikipedia search queries for unique and interesting facts
-        const categoryMap = {
-            "Science": "unknown scientific fact OR rare discovery",
-            "History": "unknown historical event OR obscure history OR little-known historical fact",
-            "Technology": "forgotten technology OR strange invention",
-            "Art": "weird art fact OR rare painting OR strange sculpture",
-            "Geography": "strange geography fact OR hidden natural wonder",
-            "Mathematics": "mathematical paradox OR little-known theorem",
-            "Music": "forgotten composer OR rare musical instrument",
-            "Nature": "rare animal fact OR strange plant",
-            "Philosophy": "obscure philosophy fact OR rare philosophical debate",
-            "Psychology": "rare psychology experiment OR strange cognitive bias"
-        };
+        // Fetch only random, Did-You-Know-worthy facts and figures from Wikipedia
+        async function fetchWikipediaFact() {
+            const searchTerms = [
+                "interesting fact",
+                "did you know",
+                "random fact",
+                "little-known fact",
+                "fun fact",
+                "surprising fact",
+                "unknown statistic",
+                "amazing figure"
+            ];
 
-        // Fetch only interesting, Did-You-Know-worthy short facts from Wikipedia
-        async function fetchWikipediaFact(category = "") {
-            let apiUrl;
+            const randomSearchTerm = searchTerms[Math.floor(Math.random() * searchTerms.length)];
 
-            if (category) {
-                const searchTerm = categoryMap[category] || "";
-                // Fetch articles matching unique and lesser-known facts related to the category
-                apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&srlimit=5&format=json&origin=*`;
-            } else {
-                // Fetch a random article if no category selected
-                apiUrl = 'https://en.wikipedia.org/w/api.php?action=query&list=random&rnnamespace=0&rnlimit=1&format=json&origin=*';
-            }
-
+            // Wikipedia API to fetch random or interesting facts
+            const apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(randomSearchTerm)}&srlimit=5&format=json&origin=*`;
             const response = await fetch(apiUrl);
             const data = await response.json();
 
             let pageId, title, snippet;
 
-            if (category && data.query.search.length > 0) {
-                // Pick a valid result from the search, if available
-                for (let result of data.query.search) {
-                    if (result.snippet.length <= 300) { // Ensure the snippet is not too long
-                        pageId = result.pageid;
-                        title = result.title;
-                        snippet = result.snippet;
-                        break;
-                    }
+            // Pick a valid result from the search
+            for (let result of data.query.search) {
+                if (result.snippet.length <= 700 && !result.title.includes("definition")) {
+                    pageId = result.pageid;
+                    title = result.title;
+                    snippet = result.snippet;
+                    break;
                 }
-            } else if (!category && data.query.random.length > 0) {
-                // Fetch a random article
-                const randomPage = data.query.random[0];
-                pageId = randomPage.id;
-                title = randomPage.title;
-                snippet = await fetchArticleSnippet(pageId);
             }
 
             if (title && snippet) {
@@ -122,26 +90,11 @@
             return null;
         }
 
-        // Fetch the short article snippet using the pageid, ensure it's interesting and factual
-        async function fetchArticleSnippet(pageid) {
-            const articleApiUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&pageids=${pageid}&explaintext=true&exchars=200&format=json&origin=*`;
-            const articleResponse = await fetch(articleApiUrl);
-            const articleData = await articleResponse.json();
-            let articleSnippet = articleData.query.pages[pageid].extract;
-
-            // If the article snippet is too broad or generic, discard it
-            if (!articleSnippet || articleSnippet.includes("definition") || articleSnippet.length > 300) {
-                return null; // Skip the result if it doesn't fit the criteria
-            }
-
-            return articleSnippet;
-        }
-
         // Ensure non-repeating facts
-        async function getNewFact(category = "") {
+        async function getNewFact() {
             let factData;
             do {
-                factData = await fetchWikipediaFact(category);
+                factData = await fetchWikipediaFact();
             } while (!factData || displayedFacts.has(factData.snippet));
 
             displayedFacts.add(factData.snippet);
@@ -150,14 +103,12 @@
 
         const lessonText = document.getElementById('lesson-text');
         const generateButton = document.getElementById('generate-button');
-        const categorySelect = document.getElementById('category-select');
 
         // Handle button click to fetch a new fact
         generateButton.addEventListener('click', async () => {
-            const selectedCategory = categorySelect.value;
             lessonText.textContent = 'Loading...';
             try {
-                const factData = await getNewFact(selectedCategory);
+                const factData = await getNewFact();
                 if (factData) {
                     lessonText.innerHTML = `<b>${factData.title}</b> — ${factData.snippet}`;
                 } else {
