@@ -98,27 +98,17 @@
 
             let pageId, title, snippet;
 
-            if (category) {
-                // Pick a random article from the search results, only if it has an interesting fact or snippet
-                const results = data.query.search;
-                let validResult = false;
-                let randomResult;
-                for (let i = 0; i < results.length; i++) {
-                    randomResult = results[i];
-                    // Apply some filtering to skip broad articles (e.g., biographies, definitions)
-                    if (!randomResult.title.includes("autism") && !randomResult.title.includes("definition") && randomResult.snippet.length <= 300) {
-                        validResult = true;
+            if (category && data.query.search.length > 0) {
+                // Pick a valid result from the search, if available
+                for (let result of data.query.search) {
+                    if (result.snippet.length <= 300) { // Ensure the snippet is not too long
+                        pageId = result.pageid;
+                        title = result.title;
+                        snippet = result.snippet;
                         break;
                     }
                 }
-                if (!validResult) {
-                    return null; // Skip if no valid result is found
-                }
-
-                pageId = randomResult.pageid;
-                title = randomResult.title;
-                snippet = randomResult.snippet; // Use the short Wikipedia search result snippet directly
-            } else {
+            } else if (!category && data.query.random.length > 0) {
                 // Fetch a random article
                 const randomPage = data.query.random[0];
                 pageId = randomPage.id;
@@ -126,7 +116,10 @@
                 snippet = await fetchArticleSnippet(pageId);
             }
 
-            return { title, snippet };
+            if (title && snippet) {
+                return { title, snippet };
+            }
+            return null;
         }
 
         // Fetch the short article snippet using the pageid, ensure it's interesting and factual
@@ -166,7 +159,7 @@
             try {
                 const factData = await getNewFact(selectedCategory);
                 if (factData) {
-                    lessonText.textContent = `"${factData.title}" — ${factData.snippet}`;
+                    lessonText.innerHTML = `<b>${factData.title}</b> — ${factData.snippet}`;
                 } else {
                     lessonText.textContent = 'Could not find a suitable fact. Please try again!';
                 }
