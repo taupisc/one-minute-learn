@@ -37,6 +37,10 @@
         #generate-button:hover {
             background-color: darkcyan;
         }
+        select {
+            padding: 10px;
+            margin-top: 20px;
+        }
         .spinner {
             margin: 16px auto;
             border: 4px solid rgba(0, 0, 0, 0.1);
@@ -59,34 +63,74 @@
     <div id="lesson-box">
         <p id="lesson-text">Click the button to learn something new in 60 seconds!</p>
         <div class="spinner" id="spinner"></div>
+        <select id="category-select">
+            <option value="economics">Economics</option>
+            <option value="psychology">Psychology</option>
+            <option value="art">Art</option>
+            <option value="history">History</option>
+            <option value="technology">Technology</option>
+            <option value="science">Science</option>
+            <option value="nature">Nature</option>
+            <option value="movies">Movies</option>
+            <option value="music">Music</option>
+            <option value="philosophy">Philosophy</option>
+        </select>
+        <br>
         <button id="generate-button">Learn Something!</button>
     </div>
 
     <script>
         const lessonText = document.getElementById('lesson-text');
         const generateButton = document.getElementById('generate-button');
+        const categorySelect = document.getElementById('category-select');
         const spinner = document.getElementById('spinner');
 
-        // Fetch a random useless fact from the Useless Facts API
-        async function fetchUselessFact() {
-            const apiUrl = 'https://uselessfacts.jsph.pl/random.json?language=en';
+        // Define a mapping of categories to keywords for approximate fact searching
+        const categoryMap = {
+            "economics": "economic fact OR money OR finance",
+            "psychology": "psychological experiment OR human behavior",
+            "art": "art history OR painting OR sculpture",
+            "history": "historical event OR ancient civilization",
+            "technology": "tech invention OR innovation",
+            "science": "scientific discovery OR physics OR chemistry",
+            "nature": "natural wonders OR environment OR ecosystem",
+            "movies": "film trivia OR cinema OR actors",
+            "music": "musical history OR famous composer",
+            "philosophy": "philosophical concept OR ethics"
+        };
+
+        // Fetch a random fact based on the category selected
+        async function fetchFactByCategory(category) {
+            const searchTerm = categoryMap[category];
+            const apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&srlimit=5&format=json&origin=*`;
             const response = await fetch(apiUrl);
             const data = await response.json();
-            return data.text; // Return the random fact
+
+            let factSnippet;
+
+            // Find a valid snippet from the results
+            for (let result of data.query.search) {
+                if (result.snippet && !result.title.includes("definition")) {
+                    factSnippet = result.snippet;
+                    break;
+                }
+            }
+            return factSnippet || 'Could not find a fact in this category. Try again!';
         }
 
         // Handle button click to fetch a new fact
         generateButton.addEventListener('click', async () => {
+            const selectedCategory = categorySelect.value;
             lessonText.textContent = 'Loading...';
-            spinner.style.display = 'block'; // Show spinner when fetching starts
+            spinner.style.display = 'block'; // Show spinner while fetching
 
             try {
-                const fact = await fetchUselessFact();
-                lessonText.textContent = fact;
+                const fact = await fetchFactByCategory(selectedCategory);
+                lessonText.innerHTML = `<b>${selectedCategory.toUpperCase()}</b> — <br><br> ${fact}`;
             } catch (error) {
                 lessonText.textContent = 'Could not load a fact. Please try again!';
             } finally {
-                spinner.style.display = 'none'; // Hide spinner when fetching is done
+                spinner.style.display = 'none'; // Hide spinner when done
             }
         });
     </script>
