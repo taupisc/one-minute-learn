@@ -94,7 +94,7 @@
 
             // Pick a valid result from the search
             for (let result of data.query.search) {
-                if (result.snippet.length <= 700 && !result.title.includes("definition")) {
+                if (result.snippet.length <= 15000 && !result.title.includes("definition")) {
                     pageId = result.pageid;
                     title = result.title;
                     snippet = result.snippet;
