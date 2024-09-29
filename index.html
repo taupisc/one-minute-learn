@@ -37,12 +37,6 @@
         #generate-button:hover {
             background-color: darkcyan;
         }
-        select {
-            padding: 10px;
-            margin-top: 20px;
-        }
-
-        /* Spinner styles */
         .spinner {
             margin: 16px auto;
             border: 4px solid rgba(0, 0, 0, 0.1);
@@ -51,116 +45,44 @@
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
-            display: none; /* Initially hidden */
+            display: none;
         }
         @keyframes spin {
             to {
                 transform: rotate(360deg);
             }
         }
-
     </style>
 </head>
 <body>
     <h1>One-Minute Learn</h1>
     <div id="lesson-box">
         <p id="lesson-text">Click the button to learn something new in 60 seconds!</p>
-        <div class="spinner" id="spinner"></div> <!-- Spinner Element -->
-        <select id="category-select">
-            <option value="random">Random</option>
-            <option value="history">History</option>
-            <option value="economics">Economics</option>
-            <option value="psychology">Psychology</option>
-            <option value="philosophy">Philosophy</option>
-            <option value="art">Art</option>
-            <option value="music">Music</option>
-            <option value="nature">Nature</option>
-            <option value="science">Science</option>
-            <option value="technology">Technology</option>
-        </select>
-        <br>
+        <div class="spinner" id="spinner"></div>
         <button id="generate-button">Learn Something!</button>
     </div>
 
     <script>
-        // Store displayed facts to ensure non-repetition
-        let displayedFacts = new Set();
-
-        // Define a mapping of categories to Wikipedia search queries for interesting facts
-        const categoryMap = {
-            "random": "random fact",
-            "history": "interesting historical event OR unknown history fact",
-            "economics": "interesting economics fact OR unknown economic theory",
-            "psychology": "rare psychology experiment OR unknown psychological concept",
-            "philosophy": "obscure philosophical concept OR rare philosophical fact",
-            "art": "rare art movement OR unknown artist fact",
-            "music": "unknown composer OR rare musical fact",
-            "nature": "rare species OR unknown nature fact",
-            "science": "scientific discovery OR unknown scientific fact",
-            "technology": "tech invention OR breakthrough"
-        };
-
-        // Function to ensure a snippet is complete by checking for a period at the end
-        function ensureCompleteSnippet(snippet) {
-            return snippet.trim().endsWith('.') ? snippet : null;
-        }
-
-        // Fetch only random, Did-You-Know-worthy facts and figures from Wikipedia
-        async function fetchWikipediaFact(category = "random") {
-            const searchTerm = categoryMap[category] || categoryMap['random'];
-
-            // Wikipedia API to fetch random or interesting facts
-            const apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&srlimit=5&format=json&origin=*`;
-            const response = await fetch(apiUrl);
-            const data = await response.json();
-
-            let pageId, title, snippet;
-
-            // Pick a valid result from the search
-            for (let result of data.query.search) {
-                snippet = ensureCompleteSnippet(result.snippet);
-                if (snippet && !result.title.includes("definition")) {
-                    pageId = result.pageid;
-                    title = result.title;
-                    break;
-                }
-            }
-
-            if (title && snippet) {
-                return { title, snippet };
-            }
-            return null;
-        }
-
-        // Ensure non-repeating facts
-        async function getNewFact(category) {
-            let factData;
-            do {
-                factData = await fetchWikipediaFact(category);
-            } while (!factData || displayedFacts.has(factData.snippet));
-
-            displayedFacts.add(factData.snippet);
-            return factData;
-        }
-
         const lessonText = document.getElementById('lesson-text');
         const generateButton = document.getElementById('generate-button');
-        const categorySelect = document.getElementById('category-select');
         const spinner = document.getElementById('spinner');
+
+        // Fetch a random useless fact from the Useless Facts API
+        async function fetchUselessFact() {
+            const apiUrl = 'https://uselessfacts.jsph.pl/random.json?language=en';
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            return data.text; // Return the random fact
+        }
 
         // Handle button click to fetch a new fact
         generateButton.addEventListener('click', async () => {
-            const selectedCategory = categorySelect.value;
             lessonText.textContent = 'Loading...';
-            spinner.style.display = 'block';  // Show spinner when fetching starts
+            spinner.style.display = 'block'; // Show spinner when fetching starts
 
             try {
-                const factData = await getNewFact(selectedCategory);
-                if (factData) {
-                    lessonText.innerHTML = `<b>${factData.title}</b> — <br><br> ${factData.snippet}`;
-                } else {
-                    lessonText.textContent = 'Could not find a suitable fact. Please try again!';
-                }
+                const fact = await fetchUselessFact();
+                lessonText.textContent = fact;
             } catch (error) {
                 lessonText.textContent = 'Could not load a fact. Please try again!';
             } finally {
