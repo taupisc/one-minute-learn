@@ -68,26 +68,26 @@
 
         // Define a mapping of categories to Wikipedia search queries for unique and interesting facts
         const categoryMap = {
-            "Science": "unknown scientific discovery OR rare experiment OR strange phenomenon",
-            "History": "obscure historical event OR strange history OR little-known historical fact",
-            "Technology": "forgotten technology OR strange invention OR obscure breakthrough",
-            "Art": "weird painting OR strange art movement OR unknown sculpture",
-            "Geography": "weird natural landmark OR hidden natural wonder OR unusual geography fact",
-            "Mathematics": "unknown mathematical paradox OR rare theorem OR strange equation",
-            "Music": "forgotten composer OR rare musical instrument OR unknown musical fact",
-            "Nature": "rare animal species OR unknown plant OR strange ecosystem",
-            "Philosophy": "obscure philosophical theory OR weird philosophical debate",
-            "Psychology": "rare cognitive bias OR unknown psychology experiment OR strange psychological fact"
+            "Science": "unknown scientific fact OR rare discovery",
+            "History": "unknown historical event OR obscure history OR little-known historical fact",
+            "Technology": "forgotten technology OR strange invention",
+            "Art": "weird art fact OR rare painting OR strange sculpture",
+            "Geography": "strange geography fact OR hidden natural wonder",
+            "Mathematics": "mathematical paradox OR little-known theorem",
+            "Music": "forgotten composer OR rare musical instrument",
+            "Nature": "rare animal fact OR strange plant",
+            "Philosophy": "obscure philosophy fact OR rare philosophical debate",
+            "Psychology": "rare psychology experiment OR strange cognitive bias"
         };
 
-        // Fetch only interesting, obscure, and Did-You-Know-worthy facts from Wikipedia
+        // Fetch only interesting, Did-You-Know-worthy short facts from Wikipedia
         async function fetchWikipediaFact(category = "") {
             let apiUrl;
 
             if (category) {
                 const searchTerm = categoryMap[category] || "";
                 // Fetch articles matching unique and lesser-known facts related to the category
-                apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&srlimit=10&format=json&origin=*`;
+                apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&srlimit=5&format=json&origin=*`;
             } else {
                 // Fetch a random article if no category selected
                 apiUrl = 'https://en.wikipedia.org/w/api.php?action=query&list=random&rnnamespace=0&rnlimit=1&format=json&origin=*';
@@ -96,17 +96,17 @@
             const response = await fetch(apiUrl);
             const data = await response.json();
 
-            let pageId, title, fact;
+            let pageId, title, snippet;
 
             if (category) {
-                // Pick a random article from the search results
+                // Pick a random article from the search results, only if it has an interesting fact or snippet
                 const results = data.query.search;
                 let validResult = false;
                 let randomResult;
                 for (let i = 0; i < results.length; i++) {
                     randomResult = results[i];
-                    // Apply some filtering to skip generic articles (e.g., biographies, broad topics)
-                    if (!randomResult.title.includes("autism") && !randomResult.title.includes("definition") && randomResult.snippet.length <= 250) {
+                    // Apply some filtering to skip broad articles (e.g., biographies, definitions)
+                    if (!randomResult.title.includes("autism") && !randomResult.title.includes("definition") && randomResult.snippet.length <= 300) {
                         validResult = true;
                         break;
                     }
@@ -117,31 +117,31 @@
 
                 pageId = randomResult.pageid;
                 title = randomResult.title;
-                fact = await fetchArticleExcerpt(pageId);
+                snippet = randomResult.snippet; // Use the short Wikipedia search result snippet directly
             } else {
                 // Fetch a random article
                 const randomPage = data.query.random[0];
                 pageId = randomPage.id;
                 title = randomPage.title;
-                fact = await fetchArticleExcerpt(pageId);
+                snippet = await fetchArticleSnippet(pageId);
             }
 
-            return { title, fact };
+            return { title, snippet };
         }
 
-        // Fetch the article excerpt using the pageid, and ensure it's interesting and short
-        async function fetchArticleExcerpt(pageid) {
-            const articleApiUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&pageids=${pageid}&explaintext=true&exchars=300&format=json&origin=*`;
+        // Fetch the short article snippet using the pageid, ensure it's interesting and factual
+        async function fetchArticleSnippet(pageid) {
+            const articleApiUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&pageids=${pageid}&explaintext=true&exchars=200&format=json&origin=*`;
             const articleResponse = await fetch(articleApiUrl);
             const articleData = await articleResponse.json();
-            let articleExcerpt = articleData.query.pages[pageid].extract;
+            let articleSnippet = articleData.query.pages[pageid].extract;
 
-            // If the article excerpt is too broad or generic, discard it
-            if (!articleExcerpt || articleExcerpt.includes("definition") || articleExcerpt.length > 300) {
+            // If the article snippet is too broad or generic, discard it
+            if (!articleSnippet || articleSnippet.includes("definition") || articleSnippet.length > 300) {
                 return null; // Skip the result if it doesn't fit the criteria
             }
 
-            return articleExcerpt;
+            return articleSnippet;
         }
 
         // Ensure non-repeating facts
@@ -149,9 +149,9 @@
             let factData;
             do {
                 factData = await fetchWikipediaFact(category);
-            } while (!factData || displayedFacts.has(factData.fact));
+            } while (!factData || displayedFacts.has(factData.snippet));
 
-            displayedFacts.add(factData.fact);
+            displayedFacts.add(factData.snippet);
             return factData;
         }
 
@@ -166,7 +166,7 @@
             try {
                 const factData = await getNewFact(selectedCategory);
                 if (factData) {
-                    lessonText.textContent = `"${factData.title}" — ${factData.fact}`;
+                    lessonText.textContent = `"${factData.title}" — ${factData.snippet}`;
                 } else {
                     lessonText.textContent = 'Could not find a suitable fact. Please try again!';
                 }
