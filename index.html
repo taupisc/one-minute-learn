@@ -21,6 +21,8 @@
             display: inline-block;
             max-width: 600px;
             width: 80%;
+            line-height: 1.6;
+            text-align: left;
         }
         #generate-button {
             padding: 10px 20px;
@@ -46,6 +48,7 @@
     <div id="lesson-box">
         <p id="lesson-text">Click the button to learn something new in 60 seconds!</p>
         <select id="category-select">
+            <option value="random">Random</option>
             <option value="history">History</option>
             <option value="economics">Economics</option>
             <option value="psychology">Psychology</option>
@@ -64,31 +67,35 @@
         // Store displayed facts to ensure non-repetition
         let displayedFacts = new Set();
 
-        // Define a mapping of categories to Wikipedia search queries for unique and interesting facts
+        // Define a mapping of categories to Wikipedia search queries for interesting facts
         const categoryMap = {
-            "history": "interesting history fact OR little-known historical event OR amazing historical figure",
-            "economics": "interesting economic fact OR unknown economic theory OR surprising statistic",
-            "psychology": "rare psychology fact OR cognitive bias OR interesting psychological phenomenon",
-            "philosophy": "philosophy fact OR obscure philosophical theory OR unknown philosophical idea",
-            "art": "art fact OR rare painting OR interesting artist trivia",
-            "music": "interesting music fact OR rare musical instrument OR fun music trivia",
-            "nature": "interesting nature fact OR rare animal OR surprising nature statistic",
-            "science": "interesting science fact OR rare scientific discovery OR amazing scientific phenomenon",
-            "technology": "interesting technology fact OR unknown invention OR technological breakthrough"
+            "random": "random fact",
+            "history": "interesting historical event OR unknown history fact",
+            "economics": "interesting economics fact OR unknown economic theory",
+            "psychology": "rare psychology experiment OR unknown psychological concept",
+            "philosophy": "obscure philosophical concept OR rare philosophical fact",
+            "art": "rare art movement OR unknown artist fact",
+            "music": "unknown composer OR rare musical fact",
+            "nature": "rare species OR unknown nature fact",
+            "science": "scientific discovery OR unknown scientific fact",
+            "technology": "tech invention OR breakthrough"
         };
 
-        // Fetch relevant facts from Wikipedia based on category
-        async function fetchWikipediaFact(category) {
-            const searchTerm = categoryMap[category] || "";
+        // Fetch only random, Did-You-Know-worthy facts and figures from Wikipedia
+        async function fetchWikipediaFact(category = "random") {
+            const searchTerm = categoryMap[category] || categoryMap['random'];
+
+            // Wikipedia API to fetch random or interesting facts
             const apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&srlimit=5&format=json&origin=*`;
             const response = await fetch(apiUrl);
             const data = await response.json();
 
-            let title, snippet;
+            let pageId, title, snippet;
 
             // Pick a valid result from the search
             for (let result of data.query.search) {
                 if (result.snippet.length <= 700 && !result.title.includes("definition")) {
+                    pageId = result.pageid;
                     title = result.title;
                     snippet = result.snippet;
                     break;
@@ -123,7 +130,7 @@
             try {
                 const factData = await getNewFact(selectedCategory);
                 if (factData) {
-                    lessonText.innerHTML = `<b>${factData.title}</b> — ${factData.snippet}`;
+                    lessonText.innerHTML = `<b>${factData.title}</b> — <br><br> ${factData.snippet}`;
                 } else {
                     lessonText.textContent = 'Could not find a suitable fact. Please try again!';
                 }
