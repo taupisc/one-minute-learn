@@ -65,12 +65,13 @@
         <div class="spinner" id="spinner"></div>
         <select id="category-select">
             <option value="economics">Economics</option>
-            <option value="psychology">Psychology</option>
-            <option value="arts">Arts</option>
+            <option value="art">Art</option>
+            <option value="history">History</option>
             <option value="science">Science</option>
             <option value="nature">Nature</option>
-            <option value="general">General Knowledge</option>
-            <option value="history">History</option>
+            <option value="psychology">Psychology</option>
+            <option value="philosophy">Philosophy</option>
+            <option value="world_news">World News</option>
         </select>
         <br>
         <button id="generate-button">Learn Something!</button>
@@ -85,12 +86,13 @@
         // Define new API sources for more interesting facts
         const apiMap = {
             "economics": "https://api.tradingeconomics.com/news?c=guest:guest&f=json",
-            "psychology": "https://uselessfacts.jsph.pl/random.json?language=en",  // Useless facts API for fun psychology facts
-            "arts": "https://collectionapi.metmuseum.org/public/collection/v1/objects/1",
-            "science": "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY",
-            "nature": "https://api.inaturalist.org/v1/observations?taxon_id=1",
-            "general": "http://numbersapi.com/random/trivia",
-            "history": "https://history.muffinlabs.com/date"
+            "art": "https://collectionapi.metmuseum.org/public/collection/v1/objects/1",  // Met Museum for art pieces
+            "history": "https://history.muffinlabs.com/date",  // History API
+            "science": "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY",  // NASA space facts
+            "nature": "https://api.inaturalist.org/v1/observations?taxon_id=1",  // Nature species
+            "psychology": "https://uselessfacts.jsph.pl/random.json?language=en",  // Useless facts for quirky psychology
+            "philosophy": "https://plato.stanford.edu/entries/consciousness/",  // Use curated summaries from Stanford Encyclopedia
+            "world_news": "https://newsapi.org/v2/top-headlines?country=us&apiKey=YOUR_API_KEY"  // World news headlines
         };
 
         // Extract relevant information from API data
@@ -98,18 +100,20 @@
             switch (category) {
                 case "economics":
                     return data[0] ? `${data[0].title}: ${data[0].description}` : "No relevant data found.";
-                case "psychology":
-                    return data.text ? `Did you know? ${data.text}` : "No relevant data found.";
-                case "arts":
+                case "art":
                     return data.title ? `Art Title: ${data.title}` : "No relevant data found.";
+                case "history":
+                    return data.data && data.data.Events[0] ? `Event: ${data.data.Events[0].text}` : "No relevant data found.";
                 case "science":
                     return data.title ? `Title: ${data.title}` : data.explanation ? data.explanation : "No relevant data found.";
                 case "nature":
                     return data.results && data.results[0] ? `Species: ${data.results[0].species_guess}` : "No relevant data found.";
-                case "general":
-                    return data ? `Did you know? ${data}` : "No relevant data found.";
-                case "history":
-                    return data.data && data.data.Events[0] ? `Event: ${data.data.Events[0].text}` : "No relevant data found.";
+                case "psychology":
+                    return data.text ? `Did you know? ${data.text}` : "No relevant data found.";
+                case "philosophy":
+                    return "Explore deep questions about reality and existence with this philosophy excerpt: Consciousness in Western Thought.";
+                case "world_news":
+                    return data.articles && data.articles[0] ? `Headline: ${data.articles[0].title}. Summary: ${data.articles[0].description}` : "No relevant data found.";
                 default:
                     return "No relevant data found.";
             }
