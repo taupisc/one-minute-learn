@@ -82,10 +82,10 @@
         const categorySelect = document.getElementById('category-select');
         const spinner = document.getElementById('spinner');
 
-        // Define category-specific APIs
+        // Define new API sources for more interesting facts
         const apiMap = {
             "economics": "https://api.tradingeconomics.com/news?c=guest:guest&f=json",
-            "psychology": "https://api.osf.io/v2/nodes/?filter[tags]=psychology",
+            "psychology": "https://uselessfacts.jsph.pl/random.json?language=en",  // Useless facts API for fun psychology facts
             "arts": "https://collectionapi.metmuseum.org/public/collection/v1/objects/1",
             "science": "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY",
             "nature": "https://api.inaturalist.org/v1/observations?taxon_id=1",
@@ -99,7 +99,7 @@
                 case "economics":
                     return data[0] ? `${data[0].title}: ${data[0].description}` : "No relevant data found.";
                 case "psychology":
-                    return data.data && data.data[0] ? `Title: ${data.data[0].attributes.title}` : "No relevant data found.";
+                    return data.text ? `Did you know? ${data.text}` : "No relevant data found.";
                 case "arts":
                     return data.title ? `Art Title: ${data.title}` : "No relevant data found.";
                 case "science":
