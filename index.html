@@ -97,21 +97,21 @@
         function extractRelevantInfo(category, data) {
             switch (category) {
                 case "economics":
-                    return data[0]?.title || "No relevant data found";
+                    return data[0] ? `${data[0].title}: ${data[0].description}` : "No relevant data found.";
                 case "psychology":
-                    return data.data[0]?.attributes?.title || "No relevant data found";
+                    return data.data && data.data[0] ? `Title: ${data.data[0].attributes.title}` : "No relevant data found.";
                 case "arts":
-                    return data.title || "No relevant data found";
+                    return data.title ? `Art Title: ${data.title}` : "No relevant data found.";
                 case "science":
-                    return data.title || data.explanation || "No relevant data found";
+                    return data.title ? `Title: ${data.title}` : data.explanation ? data.explanation : "No relevant data found.";
                 case "nature":
-                    return data.results[0]?.species_guess || "No relevant data found";
+                    return data.results && data.results[0] ? `Species: ${data.results[0].species_guess}` : "No relevant data found.";
                 case "general":
-                    return data || "No relevant data found";
+                    return data ? `Did you know? ${data}` : "No relevant data found.";
                 case "history":
-                    return data.data?.Events[0]?.text || "No relevant data found";
+                    return data.data && data.data.Events[0] ? `Event: ${data.data.Events[0].text}` : "No relevant data found.";
                 default:
-                    return "No relevant data found";
+                    return "No relevant data found.";
             }
         }
 
