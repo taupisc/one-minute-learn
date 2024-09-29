@@ -56,6 +56,7 @@
             <option value="Music">Music</option>
             <option value="Nature">Nature</option>
             <option value="Philosophy">Philosophy</option>
+            <option value="Psychology">Psychology</option>
         </select>
         <br>
         <button id="generate-button">Learn Something!</button>
@@ -65,26 +66,27 @@
         // Store displayed facts to ensure non-repetition
         let displayedFacts = new Set();
 
-        // Define a mapping of categories to relevant Wikipedia search terms
+        // Define a mapping of categories to Wikipedia search queries for unique and interesting facts
         const categoryMap = {
-            "Science": "Science",
-            "History": "World War 2 OR historical event OR invention OR discovery",
-            "Technology": "Technological invention OR device OR breakthrough",
-            "Art": "Famous painting OR sculpture OR art movement",
-            "Geography": "Natural landmark OR country OR mountain OR river",
-            "Mathematics": "Mathematical theory OR famous theorem",
-            "Music": "Famous composer OR song OR musical instrument",
-            "Nature": "Animal OR plant OR ecosystem",
-            "Philosophy": "Philosophical concept OR theory"
+            "Science": "unusual scientific discovery OR rare experiment OR weird phenomenon",
+            "History": "obscure historical event OR weird history OR little known fact",
+            "Technology": "forgotten technology OR strange invention OR unusual breakthrough",
+            "Art": "underrated painting OR rare art movement OR weird sculpture",
+            "Geography": "weird landmark OR hidden natural wonder OR unusual place",
+            "Mathematics": "mathematical paradox OR rare theorem OR unusual equation",
+            "Music": "forgotten composer OR rare musical instrument OR strange musical fact",
+            "Nature": "rare animal OR weird plant OR strange ecosystem",
+            "Philosophy": "obscure philosophical concept OR rare philosophy debate OR unusual theory",
+            "Psychology": "weird psychology experiment OR rare cognitive bias OR unusual mental condition"
         };
 
-        // Function to fetch an article summary from Wikipedia API
+        // Fetch only interesting, did-you-know-worthy facts from Wikipedia
         async function fetchWikipediaFact(category = "") {
             let apiUrl;
 
             if (category) {
                 const searchTerm = categoryMap[category] || "";
-                // Fetch articles matching specific search terms related to the category
+                // Fetch articles matching unique and lesser-known facts related to the category
                 apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&srlimit=10&format=json&origin=*`;
             } else {
                 // Fetch a random article if no category selected
