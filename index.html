@@ -93,12 +93,34 @@
             "history": "https://history.muffinlabs.com/date"
         };
 
+        // Extract relevant information from API data
+        function extractRelevantInfo(category, data) {
+            switch (category) {
+                case "economics":
+                    return data[0]?.title || "No relevant data found";
+                case "psychology":
+                    return data.data[0]?.attributes?.title || "No relevant data found";
+                case "arts":
+                    return data.title || "No relevant data found";
+                case "science":
+                    return data.title || data.explanation || "No relevant data found";
+                case "nature":
+                    return data.results[0]?.species_guess || "No relevant data found";
+                case "general":
+                    return data || "No relevant data found";
+                case "history":
+                    return data.data?.Events[0]?.text || "No relevant data found";
+                default:
+                    return "No relevant data found";
+            }
+        }
+
         // Fetch data from the relevant API based on category selected
         async function fetchFactByCategory(category) {
             const apiUrl = apiMap[category];
             const response = await fetch(apiUrl);
             const data = await response.json();
-            return JSON.stringify(data); // For simplicity, return the data as a string for now
+            return extractRelevantInfo(category, data);
         }
 
         // Handle button click to fetch a new fact
