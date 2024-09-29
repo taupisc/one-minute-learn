@@ -81,6 +81,11 @@
             "technology": "tech invention OR breakthrough"
         };
 
+        // Function to ensure a snippet is complete by checking if it ends with a full stop
+        function ensureCompleteSnippet(snippet) {
+            return snippet.trim().endsWith('.') ? snippet : null;
+        }
+
         // Fetch only random, Did-You-Know-worthy facts and figures from Wikipedia
         async function fetchWikipediaFact(category = "random") {
             const searchTerm = categoryMap[category] || categoryMap['random'];
@@ -94,10 +99,10 @@
 
             // Pick a valid result from the search
             for (let result of data.query.search) {
-                if (result.snippet.length <= 700 && !result.title.includes("definition")) {
+                snippet = ensureCompleteSnippet(result.snippet);
+                if (snippet && snippet.length <= 700 && !result.title.includes("definition")) {
                     pageId = result.pageid;
                     title = result.title;
-                    snippet = result.snippet;
                     break;
                 }
             }
