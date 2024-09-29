@@ -49,7 +49,7 @@
 <body>
     <h1>One-Minute Learn</h1>
     <div id="lesson-box">
-        <p id="lesson-text">Click the button to learn something new in less than 60 seconds!</p>
+        <p id="lesson-text">Click the button to learn something new in 60 seconds!</p>
         <select id="category-select">
             <option value="">Random</option>
             <option value="Science">Science</option>
@@ -74,12 +74,15 @@
         // Function to fetch a random or category-specific fact from Wikipedia
         async function fetchWikipediaFact(category = "") {
             const apiUrl = category 
-                ? `https://en.wikipedia.org/api/rest_v1/page/random/summary?titles=${category}`
-                : 'https://en.wikipedia.org/api/rest_v1/page/random/summary';
+                ? `https://en.wikipedia.org/w/api.php?action=query&format=json&list=random&rnnamespace=0&rnlimit=1&prop=extracts&exchars=300&origin=*&srsearch=${category}`
+                : 'https://en.wikipedia.org/w/api.php?action=query&format=json&list=random&rnnamespace=0&rnlimit=1&prop=extracts&exchars=300&origin=*';
 
             const response = await fetch(apiUrl);
             const data = await response.json();
-            return data.extract;
+            const pageId = Object.keys(data.query.pages)[0];
+            const fact = data.query.pages[pageId].extract;
+
+            return fact;
         }
 
         // Function to get a non-repeating fact
@@ -87,7 +90,7 @@
             let fact;
             do {
                 fact = await fetchWikipediaFact(category);
-            } while (displayedFacts.has(fact));
+            } while (displayedFacts.has(fact) || fact === '');
 
             displayedFacts.add(fact);
             return fact;
