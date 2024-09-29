@@ -64,17 +64,16 @@
         <p id="lesson-text">Click the button to learn something new in 60 seconds!</p>
         <div class="spinner" id="spinner"></div>
         <select id="category-select">
-            <option value="9">General Knowledge</option>
-            <option value="17">Science & Nature</option>
-            <option value="18">Computers</option>
-            <option value="23">History</option>
-            <option value="22">Geography</option>
-            <option value="12">Music</option>
-            <option value="11">Movies</option>
-            <option value="20">Mythology</option>
-            <option value="19">Mathematics</option>
-            <option value="24">Politics</option>
-            <option value="10">Books</option>
+            <option value="economics">Economics</option>
+            <option value="psychology">Psychology</option>
+            <option value="art">Art</option>
+            <option value="history">History</option>
+            <option value="technology">Technology</option>
+            <option value="science">Science</option>
+            <option value="nature">Nature</option>
+            <option value="movies">Movies</option>
+            <option value="music">Music</option>
+            <option value="philosophy">Philosophy</option>
         </select>
         <br>
         <button id="generate-button">Learn Something!</button>
@@ -86,19 +85,26 @@
         const categorySelect = document.getElementById('category-select');
         const spinner = document.getElementById('spinner');
 
-        // Fetch a random trivia fact based on the category selected
-        async function fetchTriviaFact(categoryId) {
-            const apiUrl = `https://opentdb.com/api.php?amount=1&category=${categoryId}&type=multiple`;
+        // Define API URLs for each category
+        const apiMap = {
+            "economics": "https://api.worldbank.org/v2/country/US/indicator/NY.GDP.MKTP.CD?format=json",
+            "psychology": "https://api.osf.io/v2/nodes/?filter[tags]=psychology",
+            "art": "https://collectionapi.metmuseum.org/public/collection/v1/objects/1",  // Sample from MET API
+            "history": "https://history.muffinlabs.com/date",
+            "technology": "https://newsapi.org/v2/everything?q=technology&apiKey=your_api_key",
+            "science": "https://api.nasa.gov/planetary/apod?api_key=your_api_key",
+            "nature": "https://api.inaturalist.org/v1/observations?taxon_id=1",  // iNaturalist API
+            "movies": "https://www.omdbapi.com/?t=Inception&apikey=your_api_key",
+            "music": "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=Cher&api_key=your_api_key&format=json",
+            "philosophy": "https://plato.stanford.edu/entries/consciousness/"
+        };
+
+        // Fetch facts from the relevant API based on category selected
+        async function fetchFactByCategory(category) {
+            const apiUrl = apiMap[category];
             const response = await fetch(apiUrl);
             const data = await response.json();
-
-            // Get the first trivia result
-            const triviaResult = data.results[0];
-            const question = triviaResult.question;
-            const correctAnswer = triviaResult.correct_answer;
-
-            // Format it nicely
-            return `Q: ${question}<br><br>Correct Answer: ${correctAnswer}`;
+            return JSON.stringify(data); // Format and return the response for now
         }
 
         // Handle button click to fetch a new fact
@@ -108,8 +114,8 @@
             spinner.style.display = 'block'; // Show spinner while fetching
 
             try {
-                const fact = await fetchTriviaFact(selectedCategory);
-                lessonText.innerHTML = fact;
+                const fact = await fetchFactByCategory(selectedCategory);
+                lessonText.textContent = fact;
             } catch (error) {
                 lessonText.textContent = 'Could not load a fact. Please try again!';
             } finally {
