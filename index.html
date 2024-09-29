@@ -82,35 +82,23 @@
         const categorySelect = document.getElementById('category-select');
         const spinner = document.getElementById('spinner');
 
-        // Define category-specific queries for the NewsAPI
-        const categoryMap = {
-            "economics": "economy OR finance OR GDP",
-            "psychology": "psychology OR mental health",
-            "arts": "art OR painting OR sculpture",
-            "science": "science OR space OR technology",
-            "nature": "nature OR biodiversity OR environment",
-            "general": "trivia OR fun fact",
-            "history": "history OR archaeology OR historical events"
+        // Define category-specific APIs
+        const apiMap = {
+            "economics": "https://api.tradingeconomics.com/news?c=guest:guest&f=json",
+            "psychology": "https://api.osf.io/v2/nodes/?filter[tags]=psychology",
+            "arts": "https://collectionapi.metmuseum.org/public/collection/v1/objects/1",
+            "science": "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY",
+            "nature": "https://api.inaturalist.org/v1/observations?taxon_id=1",
+            "general": "http://numbersapi.com/random/trivia",
+            "history": "https://history.muffinlabs.com/date"
         };
 
-        // Fetch news from NewsAPI based on the selected category
-        async function fetchNewsByCategory(category) {
-            const apiKey = 'your_api_key'; // Replace with your NewsAPI key
-            const searchTerm = categoryMap[category];
-            const apiUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(searchTerm)}&sortBy=publishedAt&apiKey=${apiKey}`;
+        // Fetch data from the relevant API based on category selected
+        async function fetchFactByCategory(category) {
+            const apiUrl = apiMap[category];
             const response = await fetch(apiUrl);
             const data = await response.json();
-
-            if (data.articles.length > 0) {
-                const article = data.articles[0];
-                return {
-                    headline: article.title,
-                    source: article.source.name,
-                    description: article.description
-                };
-            } else {
-                return { headline: 'No news found', source: '', description: '' };
-            }
+            return JSON.stringify(data); // For simplicity, return the data as a string for now
         }
 
         // Handle button click to fetch a new fact
@@ -120,8 +108,8 @@
             spinner.style.display = 'block'; // Show spinner while fetching
 
             try {
-                const newsData = await fetchNewsByCategory(selectedCategory);
-                lessonText.innerHTML = `<b>${newsData.headline}</b><br><br>Source: ${newsData.source}<br><br>${newsData.description}`;
+                const fact = await fetchFactByCategory(selectedCategory);
+                lessonText.textContent = fact;
             } catch (error) {
                 lessonText.textContent = 'Could not load a fact. Please try again!';
             } finally {
