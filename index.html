@@ -35,11 +35,6 @@
         #generate-button:hover {
             background-color: darkcyan;
         }
-        iframe {
-            margin-top: 20px;
-            width: 560px;
-            height: 315px;
-        }
         select {
             padding: 10px;
             margin-top: 20px;
@@ -64,44 +59,48 @@
         </select>
         <br>
         <button id="generate-button">Learn Something!</button>
-        <div id="video-container"></div>
     </div>
 
     <script>
-        // Set to track displayed facts
+        // Store displayed facts to ensure non-repetition
         let displayedFacts = new Set();
 
-        // Fetch a random or category-specific fact from Wikipedia and return its excerpt
+        // Function to fetch an article summary from Wikipedia API
         async function fetchWikipediaFact(category = "") {
             let apiUrl;
 
             if (category) {
-                // Get articles from a specific category
-                apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=${category}&cmlimit=1&prop=extracts&exintro=true&explaintext=true&format=json&origin=*`;
+                // Fetch articles from the specified category
+                apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=${category}&cmlimit=10&format=json&origin=*`;
             } else {
-                // Get a random article if no category selected
-                apiUrl = 'https://en.wikipedia.org/w/api.php?action=query&list=random&rnnamespace=0&rnlimit=1&prop=extracts&exintro=true&explaintext=true&format=json&origin=*';
+                // Fetch a random article if no category is selected
+                apiUrl = 'https://en.wikipedia.org/w/api.php?action=query&list=random&rnnamespace=0&rnlimit=1&format=json&origin=*';
             }
 
             const response = await fetch(apiUrl);
             const data = await response.json();
-            let fact;
+
+            let pageId, title;
 
             if (category) {
-                // Handle category-specific facts
+                // Pick a random article from the category
                 const pages = data.query.categorymembers;
                 const randomPage = pages[Math.floor(Math.random() * pages.length)];
-                fact = await fetchArticleExcerpt(randomPage.pageid);
+                pageId = randomPage.pageid;
+                title = randomPage.title;
             } else {
-                // Handle random facts
-                const randomArticleId = data.query.random[0].id;
-                fact = await fetchArticleExcerpt(randomArticleId);
+                // Fetch a random article
+                const randomPage = data.query.random[0];
+                pageId = randomPage.id;
+                title = randomPage.title;
             }
 
-            return fact;
+            // Get the article summary (excerpt)
+            const articleExcerpt = await fetchArticleExcerpt(pageId);
+            return { title, articleExcerpt };
         }
 
-        // Fetch the excerpt of the article based on its pageid
+        // Fetch the article excerpt using the pageid
         async function fetchArticleExcerpt(pageid) {
             const articleApiUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&pageids=${pageid}&explaintext=true&exintro=true&format=json&origin=*`;
             const articleResponse = await fetch(articleApiUrl);
@@ -112,31 +111,29 @@
 
         // Ensure non-repeating facts
         async function getNewFact(category = "") {
-            let fact;
+            let factData;
             do {
-                fact = await fetchWikipediaFact(category);
-            } while (displayedFacts.has(fact) || fact === '');
+                factData = await fetchWikipediaFact(category);
+            } while (displayedFacts.has(factData.articleExcerpt) || factData.articleExcerpt === '');
 
-            displayedFacts.add(fact);
-            return fact;
+            displayedFacts.add(factData.articleExcerpt);
+            return factData;
         }
 
         const lessonText = document.getElementById('lesson-text');
         const generateButton = document.getElementById('generate-button');
         const categorySelect = document.getElementById('category-select');
 
+        // Handle button click to fetch a new fact
         generateButton.addEventListener('click', async () => {
             const selectedCategory = categorySelect.value;
             lessonText.textContent = 'Loading...';
             try {
-                const fact = await getNewFact(selectedCategory);
-                lessonText.textContent = fact;
+                const factData = await getNewFact(selectedCategory);
+                lessonText.textContent = `"${factData.title}" — ${factData.articleExcerpt}`;
             } catch (error) {
                 lessonText.textContent = 'Could not load a fact. Please try again!';
             }
-
-            // Optionally reset video container
-            document.getElementById('video-container').innerHTML = '';
         });
     </script>
 </body>
