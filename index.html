@@ -52,7 +52,7 @@
         // Store displayed facts to ensure non-repetition
         let displayedFacts = new Set();
 
-        // Fetch only random, Did-You-Know-worthy facts and figures from Wikipedia
+        // Fetch only random, Did-You-Know-worthy facts from Wikipedia with a limit of 700 characters
         async function fetchWikipediaFact() {
             const searchTerms = [
                 "interesting fact",
@@ -67,7 +67,7 @@
 
             const randomSearchTerm = searchTerms[Math.floor(Math.random() * searchTerms.length)];
 
-            // Wikipedia API to fetch random or interesting facts
+            // Wikipedia API to fetch random or interesting facts with a limit of 700 characters
             const apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(randomSearchTerm)}&srlimit=5&format=json&origin=*`;
             const response = await fetch(apiUrl);
             const data = await response.json();
