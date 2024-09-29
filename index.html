@@ -6,7 +6,7 @@
     <title>One-Minute Learn</title>
     <style>
         body {
-            font-family: Montserrat, Arial, sans-serif;
+            font-family: Arial, sans-serif;
             text-align: center;
             background-color: #f4f4f4;
             margin: 0;
@@ -41,12 +41,31 @@
             padding: 10px;
             margin-top: 20px;
         }
+
+        /* Spinner styles */
+        .spinner {
+            margin: 16px auto;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: teal;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            display: none; /* Initially hidden */
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
     </style>
 </head>
 <body>
     <h1>One-Minute Learn</h1>
     <div id="lesson-box">
         <p id="lesson-text">Click the button to learn something new in 60 seconds!</p>
+        <div class="spinner" id="spinner"></div> <!-- Spinner Element -->
         <select id="category-select">
             <option value="random">Random</option>
             <option value="history">History</option>
@@ -127,11 +146,14 @@
         const lessonText = document.getElementById('lesson-text');
         const generateButton = document.getElementById('generate-button');
         const categorySelect = document.getElementById('category-select');
+        const spinner = document.getElementById('spinner');
 
         // Handle button click to fetch a new fact
         generateButton.addEventListener('click', async () => {
             const selectedCategory = categorySelect.value;
             lessonText.textContent = 'Loading...';
+            spinner.style.display = 'block';  // Show spinner when fetching starts
+
             try {
                 const factData = await getNewFact(selectedCategory);
                 if (factData) {
@@ -141,6 +163,8 @@
                 }
             } catch (error) {
                 lessonText.textContent = 'Could not load a fact. Please try again!';
+            } finally {
+                spinner.style.display = 'none'; // Hide spinner when fetching is done
             }
         });
     </script>
