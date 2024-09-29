@@ -52,15 +52,15 @@
         <p id="lesson-text">Click the button to learn something new in 60 seconds!</p>
         <select id="category-select">
             <option value="">Random</option>
-            <option value="Science">Science</option>
-            <option value="History">History</option>
-            <option value="Technology">Technology</option>
-            <option value="Art">Art</option>
-            <option value="Geography">Geography</option>
-            <option value="Mathematics">Mathematics</option>
-            <option value="Music">Music</option>
-            <option value="Nature">Nature</option>
-            <option value="Philosophy">Philosophy</option>
+            <option value="Category:Science">Science</option>
+            <option value="Category:History">History</option>
+            <option value="Category:Technology">Technology</option>
+            <option value="Category:Art">Art</option>
+            <option value="Category:Geography">Geography</option>
+            <option value="Category:Mathematics">Mathematics</option>
+            <option value="Category:Music">Music</option>
+            <option value="Category:Nature">Nature</option>
+            <option value="Category:Philosophy">Philosophy</option>
         </select>
         <br>
         <button id="generate-button">Learn Something!</button>
@@ -71,30 +71,16 @@
         // Set to track displayed facts
         let displayedFacts = new Set();
 
-        // Wikipedia categories mapped to correct values for the API
-        const categoryMap = {
-            "Science": "Category:Science",
-            "History": "Category:History",
-            "Technology": "Category:Technology",
-            "Art": "Category:Art",
-            "Geography": "Category:Geography",
-            "Mathematics": "Category:Mathematics",
-            "Music": "Category:Music",
-            "Nature": "Category:Nature",
-            "Philosophy": "Category:Philosophy"
-        };
-
-        // Fetch Wikipedia articles based on category
+        // Fetch a random or category-specific fact from Wikipedia and return its excerpt
         async function fetchWikipediaFact(category = "") {
-            let wikiCategory = categoryMap[category] || ""; // Use category map for specific categories or get random facts
             let apiUrl;
 
-            if (wikiCategory) {
-                // Get articles within a specific category
-                apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=${wikiCategory}&cmlimit=1&format=json&origin=*`;
+            if (category) {
+                // Get articles from a specific category
+                apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=${category}&cmlimit=1&prop=extracts&exintro=true&explaintext=true&format=json&origin=*`;
             } else {
                 // Get a random article if no category selected
-                apiUrl = 'https://en.wikipedia.org/w/api.php?action=query&list=random&rnnamespace=0&rnlimit=1&format=json&origin=*';
+                apiUrl = 'https://en.wikipedia.org/w/api.php?action=query&list=random&rnnamespace=0&rnlimit=1&prop=extracts&exintro=true&explaintext=true&format=json&origin=*';
             }
 
             const response = await fetch(apiUrl);
@@ -102,20 +88,29 @@
             let fact;
 
             if (category) {
-                // Get articles for the selected category
+                // Handle category-specific facts
                 const pages = data.query.categorymembers;
                 const randomPage = pages[Math.floor(Math.random() * pages.length)];
-                fact = `https://en.wikipedia.org/?curid=${randomPage.pageid}`;
+                fact = await fetchArticleExcerpt(randomPage.pageid);
             } else {
-                // For random facts
+                // Handle random facts
                 const randomArticleId = data.query.random[0].id;
-                fact = `https://en.wikipedia.org/?curid=${randomArticleId}`;
+                fact = await fetchArticleExcerpt(randomArticleId);
             }
 
             return fact;
         }
 
-        // Ensure facts are non-repeating
+        // Fetch the excerpt of the article based on its pageid
+        async function fetchArticleExcerpt(pageid) {
+            const articleApiUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&pageids=${pageid}&explaintext=true&exintro=true&format=json&origin=*`;
+            const articleResponse = await fetch(articleApiUrl);
+            const articleData = await articleResponse.json();
+            const articleExcerpt = articleData.query.pages[pageid].extract;
+            return articleExcerpt;
+        }
+
+        // Ensure non-repeating facts
         async function getNewFact(category = "") {
             let fact;
             do {
@@ -135,7 +130,7 @@
             lessonText.textContent = 'Loading...';
             try {
                 const fact = await getNewFact(selectedCategory);
-                lessonText.innerHTML = `<a href="${fact}" target="_blank">Click here to read more about this fact!</a>`;
+                lessonText.textContent = fact;
             } catch (error) {
                 lessonText.textContent = 'Could not load a fact. Please try again!';
             }
