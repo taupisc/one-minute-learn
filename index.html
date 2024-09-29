@@ -116,9 +116,9 @@
             return { title, fact };
         }
 
-        // Fetch the article excerpt using the pageid
+        // Fetch the article excerpt using the pageid, and limit the excerpt to 200 characters
         async function fetchArticleExcerpt(pageid) {
-            const articleApiUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&pageids=${pageid}&explaintext=true&exintro=true&format=json&origin=*`;
+            const articleApiUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&pageids=${pageid}&explaintext=true&exchars=200&format=json&origin=*`;
             const articleResponse = await fetch(articleApiUrl);
             const articleData = await articleResponse.json();
             const articleExcerpt = articleData.query.pages[pageid].extract;
