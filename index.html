@@ -71,7 +71,7 @@
         // Set to track displayed facts
         let displayedFacts = new Set();
 
-        // Mapping categories to Wikipedia categories
+        // Wikipedia categories mapped to correct values for the API
         const categoryMap = {
             "Science": "Category:Science",
             "History": "Category:History",
@@ -84,32 +84,38 @@
             "Philosophy": "Category:Philosophy"
         };
 
-        // Function to fetch a random or category-specific fact from Wikipedia
+        // Fetch Wikipedia articles based on category
         async function fetchWikipediaFact(category = "") {
-            const wikiCategory = categoryMap[category] || ""; // Use category map or get a random fact
-            const apiUrl = wikiCategory 
-                ? `https://en.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=${wikiCategory}&cmlimit=1&format=json&origin=*`
-                : 'https://en.wikipedia.org/w/api.php?action=query&list=random&rnnamespace=0&rnlimit=1&format=json&origin=*';
+            let wikiCategory = categoryMap[category] || ""; // Use category map for specific categories or get random facts
+            let apiUrl;
+
+            if (wikiCategory) {
+                // Get articles within a specific category
+                apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=${wikiCategory}&cmlimit=1&format=json&origin=*`;
+            } else {
+                // Get a random article if no category selected
+                apiUrl = 'https://en.wikipedia.org/w/api.php?action=query&list=random&rnnamespace=0&rnlimit=1&format=json&origin=*';
+            }
 
             const response = await fetch(apiUrl);
             const data = await response.json();
-            
             let fact;
+
             if (category) {
-                // If a category is chosen, fetch category-related articles
+                // Get articles for the selected category
                 const pages = data.query.categorymembers;
                 const randomPage = pages[Math.floor(Math.random() * pages.length)];
                 fact = `https://en.wikipedia.org/?curid=${randomPage.pageid}`;
             } else {
-                // If no category is selected, fetch a completely random article
-                const pageId = data.query.random[0].id;
-                fact = `https://en.wikipedia.org/?curid=${pageId}`;
+                // For random facts
+                const randomArticleId = data.query.random[0].id;
+                fact = `https://en.wikipedia.org/?curid=${randomArticleId}`;
             }
 
             return fact;
         }
 
-        // Function to get a non-repeating fact
+        // Ensure facts are non-repeating
         async function getNewFact(category = "") {
             let fact;
             do {
@@ -134,7 +140,7 @@
                 lessonText.textContent = 'Could not load a fact. Please try again!';
             }
 
-            // Optional: Reset video container (if you want videos)
+            // Optionally reset video container
             document.getElementById('video-container').innerHTML = '';
         });
     </script>
