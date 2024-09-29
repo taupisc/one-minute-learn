@@ -66,14 +66,11 @@
         <select id="category-select">
             <option value="economics">Economics</option>
             <option value="psychology">Psychology</option>
-            <option value="art">Art</option>
-            <option value="history">History</option>
-            <option value="technology">Technology</option>
+            <option value="arts">Arts</option>
             <option value="science">Science</option>
             <option value="nature">Nature</option>
-            <option value="movies">Movies</option>
-            <option value="music">Music</option>
-            <option value="philosophy">Philosophy</option>
+            <option value="general">General Knowledge</option>
+            <option value="history">History</option>
         </select>
         <br>
         <button id="generate-button">Learn Something!</button>
@@ -85,26 +82,35 @@
         const categorySelect = document.getElementById('category-select');
         const spinner = document.getElementById('spinner');
 
-        // Define API URLs for each category
-        const apiMap = {
-            "economics": "https://api.worldbank.org/v2/country/US/indicator/NY.GDP.MKTP.CD?format=json",
-            "psychology": "https://api.osf.io/v2/nodes/?filter[tags]=psychology",
-            "art": "https://collectionapi.metmuseum.org/public/collection/v1/objects/1",  // Sample from MET API
-            "history": "https://history.muffinlabs.com/date",
-            "technology": "https://newsapi.org/v2/everything?q=technology&apiKey=your_api_key",
-            "science": "https://api.nasa.gov/planetary/apod?api_key=your_api_key",
-            "nature": "https://api.inaturalist.org/v1/observations?taxon_id=1",  // iNaturalist API
-            "movies": "https://www.omdbapi.com/?t=Inception&apikey=your_api_key",
-            "music": "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=Cher&api_key=your_api_key&format=json",
-            "philosophy": "https://plato.stanford.edu/entries/consciousness/"
+        // Define category-specific queries for the NewsAPI
+        const categoryMap = {
+            "economics": "economy OR finance OR GDP",
+            "psychology": "psychology OR mental health",
+            "arts": "art OR painting OR sculpture",
+            "science": "science OR space OR technology",
+            "nature": "nature OR biodiversity OR environment",
+            "general": "trivia OR fun fact",
+            "history": "history OR archaeology OR historical events"
         };
 
-        // Fetch facts from the relevant API based on category selected
-        async function fetchFactByCategory(category) {
-            const apiUrl = apiMap[category];
+        // Fetch news from NewsAPI based on the selected category
+        async function fetchNewsByCategory(category) {
+            const apiKey = 'your_api_key'; // Replace with your NewsAPI key
+            const searchTerm = categoryMap[category];
+            const apiUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(searchTerm)}&sortBy=publishedAt&apiKey=${apiKey}`;
             const response = await fetch(apiUrl);
             const data = await response.json();
-            return JSON.stringify(data); // Format and return the response for now
+
+            if (data.articles.length > 0) {
+                const article = data.articles[0];
+                return {
+                    headline: article.title,
+                    source: article.source.name,
+                    description: article.description
+                };
+            } else {
+                return { headline: 'No news found', source: '', description: '' };
+            }
         }
 
         // Handle button click to fetch a new fact
@@ -114,8 +120,8 @@
             spinner.style.display = 'block'; // Show spinner while fetching
 
             try {
-                const fact = await fetchFactByCategory(selectedCategory);
-                lessonText.textContent = fact;
+                const newsData = await fetchNewsByCategory(selectedCategory);
+                lessonText.innerHTML = `<b>${newsData.headline}</b><br><br>Source: ${newsData.source}<br><br>${newsData.description}`;
             } catch (error) {
                 lessonText.textContent = 'Could not load a fact. Please try again!';
             } finally {
