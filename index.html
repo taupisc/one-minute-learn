@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One-Minute Learn</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        #lesson-box {
+            margin-top: 50px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+        }
+        #generate-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+            background-color: teal;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        #generate-button:hover {
+            background-color: darkcyan;
+        }
+    </style>
+</head>
+<body>
+    <h1>One-Minute Learn</h1>
+    <div id="lesson-box">
+        <p id="lesson-text">Click the button to get your 1-minute fact or skill!</p>
+        <button id="generate-button">Learn Something!</button>
+    </div>
+
+    <script>
+        // Preload some random facts
+        const lessons = [
+            "The shortest war in history lasted 38 minutes, between Britain and Zanzibar in 1896.",
+            "Honey never spoils. Archaeologists have found pots of honey in ancient Egyptian tombs that are over 3,000 years old!",
+            "A group of flamingos is called a 'flamboyance'.",
+            "One of the earliest uses of programming was in weaving looms in the early 1800s.",
+            "The longest recorded flight of a chicken is 13 seconds."
+        ];
+
+        // Select elements
+        const lessonText = document.getElementById('lesson-text');
+        const generateButton = document.getElementById('generate-button');
+
+        // Event listener for the button
+        generateButton.addEventListener('click', () => {
+            const randomIndex = Math.floor(Math.random() * lessons.length);
+            lessonText.textContent = lessons[randomIndex];
+        });
+    </script>
+</body>
+</html>
