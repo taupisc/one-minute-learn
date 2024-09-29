@@ -64,16 +64,17 @@
         <p id="lesson-text">Click the button to learn something new in 60 seconds!</p>
         <div class="spinner" id="spinner"></div>
         <select id="category-select">
-            <option value="economics">Economics</option>
-            <option value="psychology">Psychology</option>
-            <option value="art">Art</option>
-            <option value="history">History</option>
-            <option value="technology">Technology</option>
-            <option value="science">Science</option>
-            <option value="nature">Nature</option>
-            <option value="movies">Movies</option>
-            <option value="music">Music</option>
-            <option value="philosophy">Philosophy</option>
+            <option value="9">General Knowledge</option>
+            <option value="17">Science & Nature</option>
+            <option value="18">Computers</option>
+            <option value="23">History</option>
+            <option value="22">Geography</option>
+            <option value="12">Music</option>
+            <option value="11">Movies</option>
+            <option value="20">Mythology</option>
+            <option value="19">Mathematics</option>
+            <option value="24">Politics</option>
+            <option value="10">Books</option>
         </select>
         <br>
         <button id="generate-button">Learn Something!</button>
@@ -85,37 +86,19 @@
         const categorySelect = document.getElementById('category-select');
         const spinner = document.getElementById('spinner');
 
-        // Define a mapping of categories to keywords for approximate fact searching
-        const categoryMap = {
-            "economics": "economic fact OR money OR finance",
-            "psychology": "psychological experiment OR human behavior",
-            "art": "art history OR painting OR sculpture",
-            "history": "historical event OR ancient civilization",
-            "technology": "tech invention OR innovation",
-            "science": "scientific discovery OR physics OR chemistry",
-            "nature": "natural wonders OR environment OR ecosystem",
-            "movies": "film trivia OR cinema OR actors",
-            "music": "musical history OR famous composer",
-            "philosophy": "philosophical concept OR ethics"
-        };
-
-        // Fetch a random fact based on the category selected
-        async function fetchFactByCategory(category) {
-            const searchTerm = categoryMap[category];
-            const apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&srlimit=5&format=json&origin=*`;
+        // Fetch a random trivia fact based on the category selected
+        async function fetchTriviaFact(categoryId) {
+            const apiUrl = `https://opentdb.com/api.php?amount=1&category=${categoryId}&type=multiple`;
             const response = await fetch(apiUrl);
             const data = await response.json();
 
-            let factSnippet;
+            // Get the first trivia result
+            const triviaResult = data.results[0];
+            const question = triviaResult.question;
+            const correctAnswer = triviaResult.correct_answer;
 
-            // Find a valid snippet from the results
-            for (let result of data.query.search) {
-                if (result.snippet && !result.title.includes("definition")) {
-                    factSnippet = result.snippet;
-                    break;
-                }
-            }
-            return factSnippet || 'Could not find a fact in this category. Try again!';
+            // Format it nicely
+            return `Q: ${question}<br><br>Correct Answer: ${correctAnswer}`;
         }
 
         // Handle button click to fetch a new fact
@@ -125,8 +108,8 @@
             spinner.style.display = 'block'; // Show spinner while fetching
 
             try {
-                const fact = await fetchFactByCategory(selectedCategory);
-                lessonText.innerHTML = `<b>${selectedCategory.toUpperCase()}</b> — <br><br> ${fact}`;
+                const fact = await fetchTriviaFact(selectedCategory);
+                lessonText.innerHTML = fact;
             } catch (error) {
                 lessonText.textContent = 'Could not load a fact. Please try again!';
             } finally {
